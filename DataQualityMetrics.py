@@ -1,4 +1,4 @@
-from ts2vec import TS2Vec
+from .ts2vec import TS2Vec
 import numpy as  np
 import pandas as pd
 from scipy.linalg import sqrtm
