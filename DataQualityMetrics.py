@@ -12,30 +12,44 @@ class DataQualityMetrics:
         """Инициализация класса с заданным числом главных компонент."""
 
     @staticmethod
-    def calculate_cross_correlation_matrix(data):
-        """Вычисление кросс-корреляционной матрицы для данных.
+    def calculate_covariance_matrix(data):
+        """
+        Вычисление ковариационной матрицы для данных.
 
         Args:
-            data (np.array): Данные для которых нужно вычислить корреляционную матрицу.
+            data (np.array): Данные для которых нужно вычислить ковариационную матрицу.
 
         Returns:
-            np.array: Кросс-корреляционная матрица.
+            np.array: Ковариационная матрица.
         """
-        return np.corrcoef(data.T)
+        covariance_matrix = np.cov(data, rowvar=False)
+        return covariance_matrix
 
     def correlational_score(self, real_data, synthetic_data):
-        """Расчёт корреляционного скора между реальными и синтетическими данными.
+        """
+        Расчёт корреляционного скора между реальными и синтетическими данными.
 
         Args:
             real_data (np.array): Реальные данные.
             synthetic_data (np.array): Синтетические данные.
 
         Returns:
-            float: Корреляционный скор, среднее абсолютное отклонение корреляционных матриц.
+            float: Корреляционный скор, метрика на корреляции между реальными и синтетическими данными.
         """
-        real_corr_matrix = self.calculate_cross_correlation_matrix(real_data)
-        synth_corr_matrix = self.calculate_cross_correlation_matrix(synthetic_data)
-        return np.mean(np.abs(real_corr_matrix - synth_corr_matrix))
+        real_cov_matrix = self.calculate_covariance_matrix(real_data)
+        synth_cov_matrix = self.calculate_covariance_matrix(synthetic_data)
+
+        d = real_cov_matrix.shape[0]
+        score_sum = 0.0
+
+        for i in range(d):
+            for j in range(d):
+                real_corr = real_cov_matrix[i, j] / np.sqrt(real_cov_matrix[i, i] * real_cov_matrix[j, j])
+                synth_corr = synth_cov_matrix[i, j] / np.sqrt(synth_cov_matrix[i, i] * synth_cov_matrix[j, j])
+                score_sum += np.abs(real_corr - synth_corr)
+
+        correlational_score = (1 / (10 * d)) * score_sum
+        return correlational_score
 
     def calculate_fid(self, real_features, synthetic_features):
         """Вычисление Frechet Inception Distance между реальными и синтетическими признаками.
